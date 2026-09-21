@@ -1,0 +1,168 @@
+diff --git a/crawl-ref/source/Makefile b/crawl-ref/source/Makefile
+index 033abd2..5e6debe 100644
+--- a/crawl-ref/source/Makefile
++++ b/crawl-ref/source/Makefile
+@@ -745,6 +745,12 @@ endif
+ 
+ DEFINES_L += -DUSE_SDL -DUSE_GL -DUSE_FT
+ 
++# SWGL: draw the tiles UI with a software rasterizer (glwrapper-sw.cc) into the
++# SDL window surface instead of using OpenGL, for machines without a GPU.
++ifdef SWGL
++DEFINES_L += -DUSE_SWGL
++endif
++
+ ifdef GLES
+ DEFINES_L += -DUSE_GLES
+ endif
+@@ -777,6 +783,7 @@ LIBS += -lSDL2_image $(SDL2_LDFLAGS) $(FREETYPE_LDFLAGS)
+ endif # pkg-config
+ 
+ ifndef GLES
++ifndef SWGL
+ ifneq ($(uname_S),Darwin)
+ ifeq ($(msys),Yes)
+ LIBS += -lopengl32
+@@ -785,6 +792,7 @@ LIBS += -lGL
+ endif
+ endif
+ endif
++endif
+ 
+ DEFINES_L += $(PNG_CFLAGS) $(FREETYPE_CFLAGS) $(SDL2_CFLAGS)
+ INCLUDES_L += $(PNG_INCLUDE) $(FREETYPE_INCLUDE) $(SDL2_INCLUDE)
+diff --git a/crawl-ref/source/Makefile.obj b/crawl-ref/source/Makefile.obj
+index 3ea0533..e7b4841 100644
+--- a/crawl-ref/source/Makefile.obj
++++ b/crawl-ref/source/Makefile.obj
+@@ -304,6 +304,7 @@ tilesdl.o \
+ tiletex.o \
+ windowmanager-sdl.o \
+ glwrapper-ogl.o \
++glwrapper-sw.o \
+ fontwrapper-ft.o
+ 
+ TEST_OBJECTS = \
+diff --git a/crawl-ref/source/glwrapper-ogl.cc b/crawl-ref/source/glwrapper-ogl.cc
+index 8e6838f..db8946f 100644
+--- a/crawl-ref/source/glwrapper-ogl.cc
++++ b/crawl-ref/source/glwrapper-ogl.cc
+@@ -1,7 +1,7 @@
+ #include "AppHdr.h"
+ 
+ #ifdef USE_TILE_LOCAL
+-#ifdef USE_GL
++#if defined(USE_GL) && !defined(USE_SWGL)
+ 
+ #include "glwrapper-ogl.h"
+ 
+diff --git a/crawl-ref/source/glwrapper-ogl.h b/crawl-ref/source/glwrapper-ogl.h
+index 737bbec..058a751 100644
+--- a/crawl-ref/source/glwrapper-ogl.h
++++ b/crawl-ref/source/glwrapper-ogl.h
+@@ -1,7 +1,7 @@
+ #pragma once
+ 
+ #ifdef USE_TILE_LOCAL
+-#ifdef USE_GL
++#if defined(USE_GL) && !defined(USE_SWGL)
+ 
+ #include <vector>
+ 
+diff --git a/crawl-ref/source/windowmanager-sdl.cc b/crawl-ref/source/windowmanager-sdl.cc
+index d5d1a42..e14111f 100644
+--- a/crawl-ref/source/windowmanager-sdl.cc
++++ b/crawl-ref/source/windowmanager-sdl.cc
+@@ -431,6 +431,20 @@ static void _translate_wheel_event(const SDL_MouseWheelEvent &sdl_event,
+     tile_event.py = display_density.apply_game_scale(sdl_event.y);
+ }
+ 
++#ifdef USE_SWGL
++# include "glwrapper-sw.h"
++#endif
++
++// The drawable size is the window size, unless OpenGL reports a larger one.
++static void _drawable_size(SDL_Window *window, int *w, int *h)
++{
++#ifdef USE_SWGL
++    SDL_GetWindowSize(window, w, h);
++#else
++    SDL_GL_GetDrawableSize(window, w, h);
++#endif
++}
++
+ SDLWrapper::SDLWrapper():
+     m_window(nullptr), m_context(nullptr), prev_keycode(0)
+ {
+@@ -442,8 +456,10 @@ SDLWrapper::~SDLWrapper()
+     for (const auto& cursor : m_cursors)
+         if (cursor)
+             SDL_FreeCursor(cursor);
++#ifndef USE_SWGL
+     if (m_context)
+         SDL_GL_DeleteContext(m_context);
++#endif
+     if (m_window)
+         SDL_DestroyWindow(m_window);
+     SDL_Quit();
+@@ -513,7 +529,7 @@ int SDLWrapper::init(coord_def *m_windowsz)
+ 
+     SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "0");
+ 
+-#ifdef USE_GLES
++#if defined(USE_GLES) || defined(USE_SWGL)
+     unsigned int flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+ #else
+     unsigned int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+@@ -575,7 +591,12 @@ int SDLWrapper::init(coord_def *m_windowsz)
+         return false;
+     }
+ 
++#ifdef USE_SWGL
++    swgl_window = m_window;
++    m_context = (SDL_GLContext)1;   // nothing to create: drawing is done in software
++#else
+     m_context = SDL_GL_CreateContext(m_window);
++#endif
+ 
+     // The following two lines are a part of the magical dance needed to get
+     // Mojave to work with the version of SDL2 we are using.
+@@ -599,7 +620,7 @@ int SDLWrapper::init(coord_def *m_windowsz)
+     m_windowsz->y = display_density.apply_game_scale(y);
+     init_hidpi();
+ 
+-    SDL_GL_GetDrawableSize(m_window, &x, &y);
++    _drawable_size(m_window, &x, &y);
+     if (Options.tile_window_limit_size)
+     {
+         SDL_SetWindowMinimumSize(m_window, MIN_SDL_WINDOW_SIZE_X,
+@@ -728,7 +749,7 @@ bool SDLWrapper::init_hidpi()
+     // window size is in logical pixels
+     SDL_GetWindowSize(m_window, &(windowsz.x), &(windowsz.y));
+     // drawable size is in device pixels
+-    SDL_GL_GetDrawableSize(m_window, &(drawablesz.x), &(drawablesz.y));
++    _drawable_size(m_window, &(drawablesz.x), &(drawablesz.y));
+     return display_density.update(drawablesz.x, windowsz.x, Options.game_scale);
+ }
+ 
+@@ -736,7 +757,7 @@ void SDLWrapper::resize(coord_def &m_windowsz)
+ {
+     coord_def m_drawablesz;
+     init_hidpi();
+-    SDL_GL_GetDrawableSize(m_window, &(m_drawablesz.x), &(m_drawablesz.y));
++    _drawable_size(m_window, &(m_drawablesz.x), &(m_drawablesz.y));
+     glmanager->reset_view_for_resize(m_windowsz, m_drawablesz);
+ }
+ 
+@@ -1061,7 +1082,11 @@ void SDLWrapper::remove_timer(unsigned int& timer_id)
+ 
+ void SDLWrapper::swap_buffers()
+ {
++#ifdef USE_SWGL
++    SDL_UpdateWindowSurface(m_window);
++#else
+     SDL_GL_SwapWindow(m_window);
++#endif
+ }
+ 
+ void SDLWrapper::delay(unsigned int ms)
