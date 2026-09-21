@@ -183,7 +183,7 @@ Release notes live in `docs/release-notes/`. Run it from a committed tree, so th
 ## License
 
 Original project code is licensed GPL-2.0-or-later (see `LICENSE.txt`), the same
-baseline as DCSS, MiSTer-VCMI, MiSTer-Raster and MiSTer-Phosphor. The complete
+baseline as DCSS and MiSTer-VCMI. The complete
 bundle is distributed under the same terms. DCSS, SDL, FreeType, glibc and the other
 libraries keep their own licenses; see [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for the
 full inventory and the redistribution checklist.

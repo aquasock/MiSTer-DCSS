@@ -7,8 +7,8 @@ and does not replace, the copyright and license headers in individual files.
 ## Project code
 
 The original code in this repository is distributed under the GNU General Public
-License, version 2 or later, the same baseline as DCSS, MiSTer-VCMI, MiSTer-Raster
-and MiSTer-Phosphor. It consists of:
+License, version 2 or later, the same baseline as DCSS and MiSTer-VCMI. It
+consists of:
 
 - `scripts/` — the cross-build, bundling and deployment scripts and the CMake
   toolchain file.
@@ -29,10 +29,9 @@ GPL-2.0-or-later, and every other component below is licensed compatibly with it
 (FreeType is used under its GPL-2.0 option, not its FreeType License, because the
 FreeType License is not compatible with GPL version 2).
 
-### Relationship to MiSTer-VCMI, MiSTer-Raster and MiSTer-Phosphor
+### Relationship to MiSTer-VCMI
 
-MiSTer-Raster and MiSTer-Phosphor are FPGA cores. MiSTer-DCSS is ARM (HPS) software
-and shares no source with them. It does share the SDL2 video and audio drivers of
+MiSTer-DCSS shares the SDL2 video and audio drivers of
 **MiSTer-VCMI**, which are not copied into this repository: `scripts/build-deps.sh`
 reads them from `../MiSTer-VCMI/sdl-driver` (or `SDL_DRIVER_DIR`). Their licensing
 is described in that project's `ATTRIBUTIONS.md`: they are offered under
