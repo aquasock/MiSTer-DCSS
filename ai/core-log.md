@@ -29,7 +29,7 @@ Deploy commit `6ade4ab` to the MiSTer, launch DCSS at both resolutions, verify i
 
 ---
 
-## 2 COMMIT Unreleased ??? 2026-09-21T18:46:05-07:00
+## 2 COMMIT Unreleased 2e6a075 2026-09-21T18:46:05-07:00
 
 #### Coming From:
 
@@ -41,11 +41,11 @@ Restore the fixed 800x600 launcher after rejecting DCSS rendering at 640x480.
 
 #### Outcome:
 
-Hardware testing confirmed that the launch-time selection works, but DCSS does not scale acceptably at 640x480, so the resolution prompt and its documentation are rejected and commit `6ade4ab` will be reverted.
+Hardware testing confirmed that the launch-time selection worked, but DCSS did not scale acceptably at 640x480. Commit `6ade4ab` was reverted, the fixed 800x600 bundle rebuilt successfully, and matching launcher and binary checksums were verified after deployment to the MiSTer at `10.10.0.22`.
 
 #### Next Steps:
 
-Revert the resolution-selection source commit, rebuild the fixed 800x600 bundle, deploy it over the test installation at `10.10.0.22`, and verify the restored launcher and binary remotely.
+Launch DCSS once on the MiSTer and confirm that the restored fixed 800x600 startup, rendering, input, and display-mode restoration behave as before.
 
 #### Files Modified:
 
@@ -55,7 +55,7 @@ Revert the resolution-selection source commit, rebuild the fixed 800x600 bundle,
 
 #### Status:
 
-- [ ] Built
+- [x] Built
 - [ ] Passed
 
 ---
