@@ -30,9 +30,9 @@ of the game.
   first run, which takes about 90 seconds on the MiSTer. The bundle ships them
   already built (they are made on the PC under qemu), so the game starts in
   seconds.
-- **A launcher for the OSD Scripts menu** — switches the HDMI output to 800x600 so
-  your display scales the picture to fill the screen, runs the game, and restores
-  your mode afterwards.
+- **A launcher for the OSD Scripts menu** — asks whether to run at 640x480 or
+  800x600, switches the HDMI output so your display scales the picture to fill the
+  screen, runs the game, and restores your mode afterwards.
 
 ## Performance
 
@@ -50,7 +50,8 @@ something happens, so this is comfortable.
 - A MiSTer with a DE10-Nano (Cyclone V SoC), running the Menu core, with a MiSTer
   Linux image that has the `MiSTer_fb` device. Tested on the Buildroot image with
   Linux 6.18.38.
-- A USB mouse and keyboard, and an HDMI display that accepts 800x600 at 60 Hz.
+- A USB mouse and keyboard, and an HDMI display that accepts 640x480 or 800x600 at
+  60 Hz.
 - To build: a Linux PC (Ubuntu 26.04 was used), about 3 GB of free disk space, a
   network connection for fetching sources, and a checkout of
   [MiSTer-VCMI](https://github.com/aquasock/MiSTer-VCMI) next to this repository:
@@ -65,9 +66,10 @@ something happens, so this is comfortable.
    onto the root of the MiSTer's SD card, merging with what is there. This creates
    `/media/fat/dcss` and `/media/fat/Scripts/dcss.sh`. The location matters: the
    game finds its data under `/media/fat/dcss`.
-2. On the MiSTer, open the OSD (F12), choose **Scripts**, and run **dcss**. The
-   screen blinks as the output switches to 800x600, and the game starts. Quit from
-   the game's own menu; the launcher switches your display back.
+2. On the MiSTer, open the OSD (F12), choose **Scripts**, and run **dcss**. Choose
+   640x480 or 800x600 when prompted by typing 1 or 2 and pressing Enter. The screen
+   blinks as the output switches to that resolution, and the game starts. Quit
+   from the game's own menu; the launcher switches your display back.
 
 The zip also holds `INSTALL.txt`, the license texts in `LICENSES/`, and
 `SOURCES.txt` listing the exact source versions and checksums. On the first
@@ -98,8 +100,8 @@ exists. Everything works without it.
 
 | Setting | Meaning |
 | --- | --- |
-| `MISTER_OUTPUT_MODE=800x600` | The default: switch the HDMI output to 800x600 while playing |
-| `MISTER_OUTPUT_MODE=off` | Do not change the HDMI mode |
+| `MISTER_RESOLUTION=640x480` (or `800x600`) | Skip the resolution question and always use this mode |
+| `MISTER_OUTPUT_MODE=off` | Do not change the HDMI mode; otherwise it follows the chosen resolution |
 | `MISTER_RESTORE_MODE="<modeline>"` | Mode to switch back to afterwards. Default is 1080p60 |
 
 The modelines are `hact,hfp,hs,hbp,vact,vfp,vs,vbp,pixel-clock-kHz,hsync,vsync`,
@@ -117,9 +119,10 @@ The SDL driver reads the `SDL_MISTER_*` environment variables described in the
 
 ## Current limitations
 
-- **800x600 is the tested size.** The FPGA scaler only multiplies the framebuffer
-  by whole numbers, so the launcher changes the HDMI mode and lets your display do
-  the scaling.
+- **800x600 is the hardware-tested size.** The new 640x480 option uses the same
+  launcher and display-mode mechanism but still requires DCSS hardware validation.
+  The FPGA scaler only multiplies the framebuffer by whole numbers, so the launcher
+  changes the HDMI mode and lets your display do the scaling.
 - **No sound.** DCSS's sound support is not built.
 - **The software renderer is simple.** It draws axis-aligned rectangles with
   nearest-neighbour sampling and does not implement texture filtering, so the

@@ -123,7 +123,9 @@ MiSTer-DCSS v$VERSION: installing
    The location matters: the game looks for its data in /media/fat/dcss.
 
 2. On the MiSTer press F12, choose Scripts, and run "dcss".
-   The screen blinks as the HDMI output switches to 800x600 (your display scales it to fill the screen).
+   The launcher asks which resolution to use: type 1 for 640x480 or 2 for 800x600, then press Enter. The screen
+   blinks as the HDMI output switches to that resolution (your display scales it to fill the screen). To skip
+   the question, set MISTER_RESOLUTION=640x480 (or 800x600) in /media/fat/dcss/env.sh.
    Quit from the game's own menu; the display is switched back to 1080p60.
 
 No game data is needed: the tiles, fonts and levels are part of Dungeon Crawl Stone Soup.
@@ -132,7 +134,7 @@ On the first launch the launcher sets the timestamps of the data files again (we
 cache depends on them, and unzipping can change them. Do not remove saves/db and saves/des: without them the game
 rebuilds the cache (about 90 seconds).
 
-Needs: a MiSTer with a DE10-Nano, a USB mouse and keyboard, and an HDMI display that accepts 800x600 at 60 Hz.
+Needs: a MiSTer with a DE10-Nano, a USB mouse and keyboard, and an HDMI display that accepts 640x480 or 800x600 at 60 Hz.
 Saves, character dumps and settings are kept in /media/fat/dcss/saves and /media/fat/dcss/morgue; your own game
 options go in /media/fat/dcss/init.txt (a template is in settings/init.txt).
 
